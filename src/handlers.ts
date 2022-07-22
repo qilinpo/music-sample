@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-import { readdir } from "fs";
-
-type AudioUrlList = string[];
+import { createReadStream, readdir } from "fs";
 
 export const rootHandler = (_req: Request, res: Response) => {
   return res.send("API is working");
@@ -10,12 +8,19 @@ export const rootHandler = (_req: Request, res: Response) => {
 export const audioHandler = (_req: Request, res: Response) => {
   readdir("./assets/", (err, files) => {
     if (err) return res.send(err.message);
-    const audioList: AudioUrlList = files.map(
-      (file) =>
-        `https://github.com/qilinpo/music-sample/blob/main/assets/${file}?raw=true`
-    );
-    const audioUrl: string =
+    const audioList: string[] = files.map((file) => `./assets/${file}`)
+    const audioFilename: string =
       audioList[Math.floor(Math.random() * audioList.length)];
-    res.redirect(audioUrl);
+
+    const readStream = createReadStream(audioFilename);
+
+
+    readStream.on("open", function () {
+      readStream.pipe(res);
+    });
+
+    readStream.on("error", function (err) {
+      res.end(err);
+    });
   });
 };
