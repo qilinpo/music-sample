@@ -16,10 +16,6 @@ export const audioHandler = (_req: Request, res: Response) => {
     audioList[Math.floor(Math.random() * audioList.length)];
 
   https.get(audioUrl, (response) => {
-    res.set({
-      "Content-Disposition": response.headers["content-disposition"],
-      "Content-Type": response.headers["content-type"],
-    });
-    res.end()
+    response.pipe(res)
   });
 };
