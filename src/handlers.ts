@@ -1,21 +1,48 @@
-import { Request, response, Response } from "express";
-import fs from "fs";
+import { Request, Response } from "express";
 import https from "https";
+const fetch = require("node-fetch");
+
+type GitFile = {
+  path: string;
+  mode: string;
+  type: string;
+  size: number;
+  url: string;
+};
+
+type GitTree = {
+  tree?: GitFile[];
+};
+
+const githubUrl =
+  "https://api.github.com/repos/qilinpo/music-sample/git/trees/assets?recursive=1";
 
 export const rootHandler = (_req: Request, res: Response) => {
   return res.send("API is working");
 };
 
-export const audioHandler = (_req: Request, res: Response) => {
-  const audioList: string[] = [
-    "https://raw.githubusercontent.com/qilinpo/music-sample/assets/sample-01.mp3",
-    "https://raw.githubusercontent.com/qilinpo/music-sample/assets/sample-02.mp3",
-    "https://raw.githubusercontent.com/qilinpo/music-sample/assets/sample-03.mp3",
-  ];
-  const audioUrl: string =
-    audioList[Math.floor(Math.random() * audioList.length)];
+export const audioHandler = async (_req: Request, res: Response) => {
+  let audioList: string[] = [];
+  try {
+    const resp = await fetch(githubUrl);
+    const json: GitTree = await resp.json();
+    const tree: GitFile[] = json?.tree;
 
-  https.get(audioUrl, (response) => {
-    response.pipe(res)
-  });
+    tree.forEach(({ path }) => {
+      if (path.startsWith("sample-")) {
+        audioList.push(
+          `https://raw.githubusercontent.com/qilinpo/music-sample/assets/${path}`
+        );
+      }
+    });
+
+    const audioUrl: string =
+      audioList[Math.floor(Math.random() * audioList.length)];
+
+    https.get(audioUrl, (response) => {
+      response.pipe(res);
+    });
+  } catch (error) {
+    console.error(error.message);
+  }
 };
