@@ -17,11 +17,8 @@ type GitTree = {
 const githubUrl =
   "https://api.github.com/repos/qilinpo/music-sample/git/trees/assets?recursive=1";
 
-export const rootHandler = (_req: Request, res: Response) => {
-  return res.send("API is working");
-};
 
-export const audioHandler = async (_req: Request, res: Response) => {
+const audioHandler = async (_req: Request, res: Response) => {
   let audioList: string[] = [];
   try {
     const resp = await fetch(githubUrl);
@@ -46,3 +43,5 @@ export const audioHandler = async (_req: Request, res: Response) => {
     console.error(error.message);
   }
 };
+
+export default audioHandler
